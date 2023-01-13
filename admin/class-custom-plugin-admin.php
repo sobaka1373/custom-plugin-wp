@@ -34,7 +34,63 @@ class Custom_Plugin_Admin
             'custom plugin', 'Custom plugin title', 'manage_options',
             'custom-plugin-admin', 'admin_page_open', '', 6
         );
-//        add_filter( 'option_page_capability_'.'custom-plugin-admin', 'my_page_capability' );
     }
+
+    public function start_convert_data_to_posts(): void
+    {
+        $data = get_data_from_db();
+
+	    $args = array(
+		    'meta_key' => 'jos_table',
+		    'meta_value' => '1',
+		    'post_type' => 'post',
+		    'post_status' => 'publish',
+		    'posts_per_page' => -1
+	    );
+	    $posts = get_posts($args);
+		$post_count = count($posts);
+
+        for ($i = $post_count, $iMax = count( $data ); $i < $iMax; $i++) {
+	        $category = get_category_post($data[$i]);
+	        $post_data = array(
+		        'post_title'    => sanitize_text_field( $data[$i]->title ),
+		        'post_content'  => $data[$i]->fulltext,
+		        'post_category' => $category,
+		        'post_date'      => $data[$i]->created,
+		        'post_status'    => 'publish',
+		        'meta_input'    => [ 'jos_table' => true ],
+	        );
+	        wp_insert_post($post_data);
+        }
+		wp_die();
+    }
+
+	public function start_parse_posts(): void
+	{
+		$args = array(
+			'meta_key' => 'jos_table',
+			'meta_value' => '1',
+			'post_type' => 'post',
+			'post_status' => 'publish',
+			'posts_per_page' => 1000
+		);
+		$posts = get_posts($args);
+
+		foreach ($posts as $post) {
+
+			$old_post_content = $post->post_content;
+			$content = parse_article($old_post_content);
+
+			$my_post = [
+				'ID' => $post->ID,
+				'post_content' => $content,
+			];
+			wp_update_post(wp_slash($my_post));
+			delete_post_meta( $post->ID, 'jos_table' );
+		}
+
+		check_posts_consist_meta();
+		wp_die();
+	}
 
 }
