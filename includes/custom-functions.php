@@ -22,7 +22,7 @@ function get_data_from_db(): array
 {
     global $wpdb;
     $sql = "SELECT * FROM jos_content WHERE sectionid <> 0 AND sectionid <> 1
-    AND sectionid <> 2 AND sectionid <> 8 AND sectionid <> 9 AND sectionid <> 11 AND sectionid <> 12 
+    AND sectionid <> 2 AND sectionid <> 8 AND sectionid <> 9 AND sectionid <> 11 AND sectionid <> 12
     AND sectionid <> 14 AND sectionid <> 17 AND sectionid <> 19 AND sectionid <> 36;";
     return $wpdb->get_results($sql);
 }
@@ -53,7 +53,7 @@ function get_category_post($item): array
 
     if ((int) $item->sectionid === 7) {
         if (str_contains($string_lower, 'ректор') || str_contains($string_lower, 'універ')
-            || str_contains($string_lower, 'КУП НАН') || str_contains($string_lower, 'аукціон')
+            || str_contains($string_lower, 'куп нан') || str_contains($string_lower, 'аукціон')
             || str_contains($string_lower, 'співпрац') || str_contains($string_lower, 'виставк')
             || str_contains($string_lower, 'план') || str_contains($string_lower, 'угод')
             || str_contains($string_lower, 'часопис') || str_contains($string_lower, 'бакалавр')
@@ -102,6 +102,7 @@ function get_category_id($slug): int
 }
 function parse_article($old_post_content): string
 {
+	global $wpdb;
 
 	$new_post_content = str_replace("div", "p", $old_post_content );
 
@@ -109,7 +110,12 @@ function parse_article($old_post_content): string
 	$new_post_content = preg_replace("~<span\s+.*?>~i",'<span>', $new_post_content);
 
 	$new_post_content = str_replace( "http://kul.kiev.ua", "", $new_post_content );
+
+	$new_post_content = str_replace( "http://", "http1", $new_post_content );
+	$new_post_content = str_replace( "https://", "http2", $new_post_content );
 	$new_post_content = str_replace( "//", "/", $new_post_content );
+	$new_post_content = str_replace( "http1", "http://", $new_post_content );
+	$new_post_content = str_replace( "http2", "https://", $new_post_content );
 
 	//Table
 	$pos1 = stripos($new_post_content, '<table');
@@ -124,8 +130,12 @@ function parse_article($old_post_content): string
 		}
 	}
 
-	$doc = new DOMDocument();
-	$doc->loadHTML(mb_convert_encoding($new_post_content, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+	libxml_use_internal_errors(true) && libxml_clear_errors(); // for html5
+	$doc = new DOMDocument('1.0', 'UTF-8');
+	$doc->substituteEntities = true;
+  $new_post_content = '<div>' . $new_post_content . '</div>';
+	$new_post_content = mb_convert_encoding($new_post_content, 'HTML-ENTITIES', 'UTF-8');
+	$doc->loadHTML($new_post_content, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
 	$elements = $doc->getElementsByTagName('script');
 	for ($i = $elements->length; --$i >= 0; ) {
 		$script = $elements->item($i);
@@ -141,7 +151,16 @@ function parse_article($old_post_content): string
     }
 	}
 
-	return $doc->saveHTML();
+//	$tags = $doc->getElementsByTagName('img');
+//	foreach ($tags as $tag) {
+//	  $table = $wpdb->prefix.'src_images';
+//    $path = $tag->getAttribute('src');
+//    $path = str_replace('images/', '', $path);
+//	  $data = array( 'path' => $path);
+//	  $wpdb->insert($table,$data);
+//	}
+
+	return $doc->saveHTML((new \DOMXPath($doc))->query('/')->item(0));
 }
 
 function check_posts_consist_meta(): void
