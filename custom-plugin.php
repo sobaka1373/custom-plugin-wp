@@ -25,18 +25,18 @@ if ( ! defined( 'WPINC' ) ) {
 define( 'MY_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-function activate_custom_plugin() {
-    require_once plugin_dir_path( __FILE__ ) . 'includes/class-custom-plugin-activator.php';
-    Custom_Plugin_Activator::activate();
-}
+//function activate_custom_plugin() {
+//    require_once plugin_dir_path( __FILE__ ) . 'includes/class-custom-plugin-activator.php';
+//    Custom_Plugin_Activator::activate();
+//}
+//
+//function deactivate_custom_plugin() {
+//    require_once plugin_dir_path( __FILE__ ) . 'includes/class-custom-plugin-deactivator.php';
+//    Custom_Plugin_Deactivator::deactivate();
+//}
 
-function deactivate_custom_plugin() {
-    require_once plugin_dir_path( __FILE__ ) . 'includes/class-custom-plugin-deactivator.php';
-    Custom_Plugin_Deactivator::deactivate();
-}
-
-register_activation_hook( __FILE__, 'activate_custom_plugin' );
-register_deactivation_hook( __FILE__, 'deactivate_custom_plugin' );
+//register_activation_hook( __FILE__, 'activate_custom_plugin' );
+//register_deactivation_hook( __FILE__, 'deactivate_custom_plugin' );
 
 require plugin_dir_path( __FILE__ ) . 'includes/class-custom-plugin.php';
 

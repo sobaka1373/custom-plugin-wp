@@ -22,6 +22,7 @@ class Custom_Plugin {
         require_once plugin_dir_path(__DIR__) . 'admin/class-custom-plugin-admin.php';
         require_once plugin_dir_path(__DIR__) . 'public/class-custom-plugin-public.php';
         require_once plugin_dir_path(__DIR__) . 'includes/custom-functions.php';
+        require_once plugin_dir_path(__DIR__) . 'includes/acf/init.php';
         $this->loader = new Custom_Plugin_Loader();
     }
 
@@ -30,6 +31,13 @@ class Custom_Plugin {
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
         $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'register_admin_page');
+        $this->loader->add_action( 'wp_ajax_start_parse_file', $plugin_admin , 'start_parse_file' );
+        $this->loader->add_action( 'init', $plugin_admin, 'create_posttype_region');
+        $this->loader->add_action( 'init', $plugin_admin, 'create_posttype_district');
+        $this->loader->add_action( 'init', $plugin_admin, 'create_posttype_townname');
+        $this->loader->add_action( 'init', $plugin_admin, 'create_posttype_streetname');
+        add_shortcode( 'sitemap', 'generate_site_map' );
+        add_shortcode( 'post-index-content', 'generate_post_content' );
     }
 
     private function define_public_hooks() {
